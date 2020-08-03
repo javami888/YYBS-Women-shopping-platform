@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>订单管理</title>
+	<link rel="stylesheet" href="assets/css/bootstrap.css">
+	<link rel="stylesheet" href="assets/css/font-awesome.min.css">
+    <link rel="stylesheet" href="assets/css/style.css">
+	<link rel="stylesheet" href="assets/css/bs4.pop.css">
+	<link rel="stylesheet" href="assets/css/new_file.css">
+	<link rel="stylesheet" href="assets/css/notiflix.css">
+
+	<style type="text/css">
+		body{
+			overflow:hidden
+		}
+	
+	</style>
+
+
+</head>
+<body>
+
+<div id="app">
+<div class="col-lg-6" >
+    <div class="card"style="width: 1520px">
+        <div class="card-body"  width="100%">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead>
+
+                    <th colspan="7" >
+                        <div class="card-body" >
+                                
+                                <input  type="text" v-model="ps.name" placeholder="请输入姓名"  class="mr-3 form-control"
+                                        style="width: 250px;display: inline-block" value="">   
+                                <input  type="text" v-model="ps.telephone" placeholder="请输入手机号"  class="mr-3 form-control"
+                                        style="width: 250px;display: inline-block" value=""> 
+                                 <select  placeholder="状态" v-model="ps.state" class="mr-3 form-control" style="width: 150px;display: inline-block">
+                                 		<option value="">订单状态</option>
+                                 		<option value="0">未发货</option>
+                                 		<option value="1">已收货</option>
+                                 		<option value="2">已发货</option>
+                                 </select>
+                                <button @click="search()" class="btn btn-info">搜索</button> 
+
+                        </div>
+                    </th>
+
+                    <tr style="text-align: center;">
+                        <th>收货人</th>
+                        <th>收货地址</th>
+                        <th>收货电话</th>
+                        <th>总金额</th>
+                        <th>订单时间</th>
+                        <th>状态</th>
+                        <th>操作</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    
+		                <tr v-for="l in pageData"  style="text-align: center;">
+		                   <td>{{l.name}}</td>
+		                   <td>{{l.address}}</td>
+		                   <td>{{l.telephone}}</td>
+		                   <td>{{l.total}}</td>
+		                   <td>{{l.ordertimes}}</td>
+		                   
+		                   <td v-if=" l.state == 0 "><span style=" color:red; " >未发货</span></td>
+		                   <td v-else-if=" l.state == 1"><span style=" color:green; " >已收货</span></td>
+		                   <td v-else ><span style=" color:orange; " >已发货</span></td>
+		                   
+		                   <td>
+		                   		
+		                   
+		                 	  	<button type="button" data-toggle="modal" onclick="getUpdate()"  @click="getOrderDetail(l.oid)" class="btn btn-info" id="xiugai">详情</button>
+		                   		
+		                   		<span v-if=" l.state == 0 ">
+			                   		<button type="button"  class="btn btn-info" @click="changeState(l.oid)" >发货</button>
+		                   		</span>
+		                   		<span v-else-if=" l.state == 1 "> 
+			                   		<button type="button"  class="btn btn-info"  disabled>发货</button>
+		                   		</span>
+		                   		<span v-else>
+			                   		<button type="button"  class="btn btn-info"  disabled>发货</button>
+		                   		</span>
+		                   		
+		                   </td>
+		                </tr>
+                    
+                    </tbody>
+                    
+                    <tfoot>
+                    	<tr>
+                    		<td></td>
+	                        <td></td>
+	                        <td></td>
+	                        <td></td>
+                    		<td colspan="3" style="text-align: right">
+                    			共{{pageInfo.totalCount}}条数据
+		                         &nbsp;当前 {{pageInfo.currentPage}}/{{pageInfo.totalPage}} 页
+		                         &nbsp;每页显示 8 条
+                    			<button type="button" class="btn btn-info" @click="changePage(1)">首页</button>
+                                <button type="button" class="btn btn-info" @click="changePage(pageInfo.upPage)">上一页 </button>
+                    			<button type="button" class="btn btn-info" @click="changePage(pageInfo.nextPage)">下一页 </button>
+                                <button type="button" class="btn btn-info" @click="changePage(pageInfo.totalPage)">尾页</button>
+                    		</td>
+                    	</tr>
+                    </tfoot>
+				</table>
+			</div>
+		</div>
+	</div>
+</div>
+
+
+<!-- 修改的模态框 -->
+<div id="myModalupdate" tabindex="-1" role="dialog" class="modal fade text-left" style="display: none;" aria-hidden="true">
+    <div role="document" class="modal-dialog">
+        <div class="modal-content" >
+            <!-- 模态框头部 -->
+	        <div class="modal-header">
+	          <span class="modal-title">修改订单信息</span>
+	          <button type="button" class="close" data-dismiss="modal">&times;</button>
+	        </div>
+                <div class="modal-body" >
+                		<table border = "1px" width="100px" class="table table-bordered ">
+							<tr>
+								<td>商品名称</td>
+								<td>商品数量</td>
+								<td>商品单价</td>
+							</tr>
+							<tr v-for =" d  in  detail">
+								<td>{{d.pname}}</td>
+								<td>{{d.count}}</td>
+								<td>￥{{d.price}}</td>
+							</tr>
+						</table>
+                	<div class="form-group">
+                        <label>收货人</label>
+                        <input type="text" placeholder="收货人" class="form-control" v-model="info.name">
+                    </div>
+                    <div class="form-group">
+                        <label>收货地址</label>
+                        <input type="text" placeholder="地址" class="form-control" v-model="info.address">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>收货电话</label>
+                        <input type="text" placeholder="电话" class="form-control" v-model="info.telephone">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" data-dismiss="modal" class="btn btn-secondary">取消</button>
+                    <button @click="updateOrder(oid)" id="upload" data-toggle="modal" class="btn btn-primary">确认修改</button>
+                </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+
+<!-- app -->
+</div>
+
+      <script type="text/javascript" src="assets/js/vendor/jquery-3.3.1.min.js"></script>
+      <script type="text/javascript" src="assets/js/bootstrap.min.js"></script>
+	  <script type="text/javascript" src="assets/js/vue.js"></script>
+	  <script src="assets/js/bs4.pop.js"></script>
+	  <script src="assets/js/j.js" type="text/javascript"></script>
+	  <script type="text/javascript">
+		 
+	  
+		  
+		  var app = new Vue({
+			  el:"#app",
+			  data:{
+				  ps:{
+					  state:""
+				  },
+				  pageInfo:{},
+				  pageData:[],
+				  info:{},
+				  detail:[]
+			  },
+			  methods:{
+				  search:function(){
+	    			  sendReq(1);
+	    		  },
+	    		  changePage:function(p){
+	    			  sendReq(p);
+	    		  },
+	    		  getOrderDetail:function(oid){
+	    			  $.post("list?m=getOrder",{oid:oid},function(back){
+	    				  app.detail = back.data;
+	    				  app.info = back.data[0];
+	    			  }) 
+	    		  
+	    		  },
+	    		  changeState:function(oid){
+    				Notiflix.Confirm.Show( '谨慎操作！', '确定发货吗?', 'Yes', 'No', function(){
+	    			  $.post( "list?m=changeState",{ oid:oid } ,function(back){
+							if( back.code == 10208 ){
+								bs4pop.notice('发货成功！', {type: 'success'});
+								window.location.reload();
+							}	    					  
+	    			  })
+      			    }); 
+	    			  
+	    		  },
+	    		  updateOrder:function(){
+	    			  var name = app.info.name.trim();
+	    			  var address = app.info.address.trim();
+	    			  var telephone = app.info.telephone.trim();
+	    			  if(name == "" || address == "" || telephone == "" ){
+ 		  	 	 		 $('#myModalupdate').modal('hide');
+ 		  	 	 	 	 bs4pop.notice('修改失败，各项不能为空！', {type: 'warning'});
+ 		  	 	 	  }else{
+		    			  $.post("list?m=updateOrder",app.info,function(back){
+		    				  if(back.code == 10206){
+		    		  	 	 	 	 window.location.reload();
+		    		  	 	 	 }
+		    			  });
+ 		  	 	 	  }
+	    			  
+	    		  }
+	    		  
+			  }
+		  })
+	  
+		   /*分页发送的页码数据*/
+	      function sendReq(page){
+	    	$.post("list?m=getList&page="+page ,  app.ps  , function(back){
+	    		app.pageInfo = back.data.pageInfo;
+	    		app.pageData = back.data.pageDate;
+	    	});  
+	      }
+	  	  /*js自动调用分页方法*/
+	      sendReq(1);
+		  
+	      /*详情 修改*/
+		    function getUpdate(){
+		  		 $("#myModalupdate").modal({show:true});
+		    }
+		  
+	    $(function(){
+	  		Notiflix.Confirm.Init();
+	  		clickToClose:true
+	  	});
+
+		  	  
+	  
+	  </script>            
+                    
+
+</body>
+</html>

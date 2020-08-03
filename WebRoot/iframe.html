@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta>
+    <title>默认首页</title>
+
+	<link rel="stylesheet" href="assets/css/bootstrap.min.css">
+	<link rel="stylesheet" href="assets/css/font-awesome.min.css">
+    <link rel="stylesheet" href="assets/css/style.css">
+	<script src="assets/js/highcharts.js"></script>
+	<script src="assets/js/series-label.js"></script>
+	<script src="assets/js/exporting.js"></script>
+	<script src="assets/js/export-data.js"></script>
+	<style type="text/css">
+	exporting: { enabled:false }
+	
+	</style>
+</head>
+<body>
+<div id="app">
+    
+    <div id="container"></div><br/><br/><br/>
+   <div id="container1"></div>
+    
+    
+</div>
+    <script src="assets/js/vendor/jquery-3.3.1.min.js"></script>
+	<script src="assets/js/popper.min.js"></script>
+	<script src="assets/js/plugins.js"></script>
+	<script type="text/javascript" src="assets/js/vue.js"></script>
+    <script type="text/javascript">
+    
+    $.post(
+    	"pro?m=getLineChart",function(back){
+    		getLineChart(back.data)
+    		getLineChart1(back.data)
+    	}
+    )
+    
+    
+
+    
+	function getLineChart(data){
+		Highcharts.chart('container', {
+	
+		    title: {
+		        text: '衣衣布舍商城7天订单量和成交额实时统计图'
+		    },
+		
+		    subtitle: {
+		        text: '来源：衣衣布舍商城开发小组'
+		    },
+			 // 加入此参数,即可隐藏下载链接
+			credits: {
+			   enabled: false
+			},
+		    yAxis: {
+		        title: {
+		            text: '营业额'
+		        }
+		    },
+		    legend: {
+		        layout: 'vertical',
+		        align: 'right',
+		        verticalAlign: 'middle'
+		    },
+		    chart: {
+			    "style": {
+			      "fontFamily": "\"微软雅黑\", Arial, Helvetica, sans-serif",
+			      "color": "#333",
+			      "fontSize": "12px",
+			      "fontWeight": "normal",
+			      "fontStyle": "normal"
+			    },
+			    "height": 370,
+			},
+			colors: [
+			    "#7cb5ec",
+			    "#434348",
+			    "#90ed7d",
+			    "#e65100",
+			    "#8085e9",
+			    "#f15c80",
+			    "#e4d354",
+			    "#2b908f",
+			    "#f45b5b",
+			    "#91e8e1"
+			],
+			exporting:{
+				enabled:false //用来设置是否显示‘打印’,'导出'等
+			},
+			xAxis: {
+				categories: data.time
+			},
+		    series: [ {
+		        name: '营业额',
+		        data: data.money,
+		        "_colorIndex": 3,
+		    }],
+		
+		    responsive: {
+		        rules: [{
+		            condition: {
+		                maxWidth: 500,
+		            },
+		            chartOptions: {
+		                legend: {
+		                    layout: 'horizontal',
+		                    align: 'center',
+		                    verticalAlign: 'bottom'
+		                }
+		            }
+		        }]
+		    }
+		
+		});
+	
+	}
+	
+		function getLineChart1(data){
+		Highcharts.chart('container1', {
+	
+		    title: {
+		        text: ''
+		    },
+		
+		    subtitle: {
+		        text: ''
+		    },
+		
+		    yAxis: {
+		        title: {
+		            text: '订单量'
+		        }
+		    },
+		    legend: {
+		        layout: 'vertical',
+		        align: 'right',
+		        verticalAlign: 'middle'
+		    },
+		   // 加入此参数,即可隐藏下载链接
+			credits: {
+			   enabled: false
+			},
+		    chart: {
+			    "style": {
+			      "fontFamily": "\"微软雅黑\", Arial, Helvetica, sans-serif",
+			      "color": "#333",
+			      "fontSize": "12px",
+			      "fontWeight": "normal",
+			      "fontStyle": "normal"
+			    },
+			    "height": 330,
+			},
+			xAxis: {
+				categories: data.time
+			},
+			exporting:{
+				enabled:false //用来设置是否显示‘打印’,'导出'等
+			},
+		    series: [{
+		        name: '订单量',
+		        data: data.count,
+		    }],
+		
+		    responsive: {
+		        rules: [{
+		            condition: {
+		                maxWidth: 500
+		            },
+		            chartOptions: {
+		                legend: {
+		                    layout: 'horizontal',
+		                    align: 'center',
+		                    verticalAlign: 'bottom'
+		                }
+		            }
+		        }]
+		    }
+		
+		});
+	
+	}
+	
+	
+
+
+	</script>
+</body>
+</html>

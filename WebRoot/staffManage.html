@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>员工管理</title>
+
+	<link rel="stylesheet" href="assets/css/bootstrap.css">
+	<link rel="stylesheet" href="assets/css/bs4.pop.css">
+	<link rel="stylesheet" href="assets/css/new_file.css">
+	<link rel="stylesheet" href="assets/css/notiflix.css">
+	<link rel="stylesheet" href="assets/css/font-awesome.min.css">
+    <link rel="stylesheet" href="assets/css/style.css">
+	<style type="text/css">
+		body{
+			overflow:hidden
+		}
+		th{
+			width: 15%
+		}
+	</style>
+
+
+</head>
+<body>
+
+<div id="app">
+<div class="col-lg-6" >
+    <div class="card"style="width: 1520px">
+
+        <div class="card-body" width="100%">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead>
+
+                    <th colspan="7" >
+                        <div class="card-body" >
+                                
+                                <input  type="text" v-model="ps.params" placeholder="请输入员工姓名/电话"  class="mr-3 form-control"
+                                        style="width: 250px;display: inline-block">
+                                <select class="form-control" v-model="ps.deptID" id="sel1" style="width: 150px;display: inline-block">
+				                  <option value="">职位</option>
+								</select>
+								&nbsp;
+                                <button @click="search()" class="btn btn-info">搜索</button> 
+                                &nbsp;&nbsp;
+								<button @click="addStaff()" onclick="getEmpDeptss()" class="btn btn-success">新增员工</button> 
+                        </div>
+                    </th>
+
+                    <tr style="text-align: center;">
+                        <th>员工编号</th>
+                        <th>员工姓名</th>
+                        <th>手机号码</th>
+                        <th>入职时间</th>
+                        <th>员工状态</th>
+                        <th>职位</th>
+                        <th>操作</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    
+		                <tr v-for="a in pageData"  style="text-align: center;">
+		                   <td>{{a.id}}</td>
+		                   <td>{{a.name}}</td>
+		                   <td>{{a.telephone}}</td>
+		                   <td>{{a.hiredates}}</td>
+		                   <td> 
+		                   		<span v-if="a.state  == 1 ">
+		                   			<button type="button" @click="stopAccount(3,a.id)" class="btn btn-info" >启用</button>
+		                   		</span>
+		                   		<span v-else>
+		                   			<button type="button" @click="stopAccount(1,a.id)" class="btn btn-danger" >禁用</button>
+		                   		</span>
+		                   		
+		                   </td>
+		                   <td>
+		                   		{{a.deptname}}
+		                   </td>
+		                   <td>
+								<button type="button" data-toggle="modal" onclick="getEmpDepts()"  @click="getStaffInfoByid(a.id)" class="btn btn-info">编辑</button>
+		                   </td>
+		                </tr>
+                    
+                    </tbody>
+                    
+                    <tfoot>
+                    	<tr>
+	                        <td></td>
+	                        <td></td>
+	                        <td></td>
+                    		<td colspan="3" style="text-align: right">
+                    			共{{pageInfo.totalCount}}条数据
+		                         &nbsp;当前 {{pageInfo.currentPage}}/{{pageInfo.totalPage}} 页
+		                         &nbsp;每页显示 8 条
+                    			<button type="button" class="btn btn-info" @click="changePage(1)">首页</button>
+                                <button type="button" class="btn btn-info" @click="changePage(pageInfo.upPage)">上一页 </button>
+                    			<button type="button" class="btn btn-info" @click="changePage(pageInfo.nextPage)">下一页 </button>
+                                <button type="button" class="btn btn-info" @click="changePage(pageInfo.totalPage)">尾页</button>
+                    		</td>
+                    	</tr>
+                    </tfoot>
+				</table>
+			</div>
+		</div>
+	</div>
+</div>
+
+
+<!-- 修改用户信息的模态框 -->
+<div id="myModalUpdate" tabindex="-1" role="dialog" class="modal fade text-left" style="display: none;" aria-hidden="true">
+    <div role="document" class="modal-dialog">
+        <div class="modal-content" >
+            <!-- 模态框头部 -->
+	        <div class="modal-header">
+	          <span class="modal-title">修改员工信息</span>
+	          <button type="button" class="close" data-dismiss="modal">&times;</button>
+	        </div>
+                <div class="modal-body" >
+                	<div class="form-group">
+                        <label>员工编号</label>
+                        <input type="text" v-model="updateinfo.id" readonly="readonly" placeholder="员工编号" class="form-control" name="shopPrice">
+                    </div>
+                	<div class="form-group">
+                        <label>员工姓名</label>
+                        <input type="text" v-model="updateinfo.name" placeholder="员工姓名" class="form-control" name="pname" disabled >
+                    </div>
+                    <div class="form-group">
+                        <label>手机号码</label>
+                        <input type="text" v-model="updateinfo.telephone" placeholder="手机号码" class="form-control" name="marketPrice">
+                    </div>
+                    <div class="form-group">
+                        <label>入职时间</label>
+                        <input type="text" v-model="updateinfo.hiredates" readonly="readonly" placeholder="入职时间" class="form-control" name="shopPrice">
+                    </div>
+                   	 职位：
+                    <select class="form-control" id="sel" style="width: 150px;display: inline-block" name="deptID" v-model="updateinfo.deptID" >
+							
+                    </select>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" data-dismiss="modal" class="btn btn-secondary">取消</button>
+                    <button id="upload" @click="updateStaffInfo()" data-toggle="modal" class="btn btn-primary">确认修改</button>
+                </div>
+        </div>
+    </div>
+</div>
+
+<!-- 新增员工的模态框 -->
+<div id="myModalAdd" tabindex="-1" role="dialog" class="modal fade text-left" style="display: none;" aria-hidden="true">
+    <div role="document" class="modal-dialog">
+        <div class="modal-content" >
+            <!-- 模态框头部 -->
+	        <div class="modal-header">
+	          <span class="modal-title">新增员工</span>
+	          <button type="button" class="close" data-dismiss="modal">&times;</button>
+	        </div>
+                <div class="modal-body" >
+                	<div class="form-group">
+                        <label>员工姓名</label>
+                        <input type="text" v-model="addinfo.name" placeholder="员工姓名" class="form-control" name="pname"  >
+                    </div>
+                    <div class="form-group">
+                        <label>手机号码</label>
+                        <input type="text" v-model="addinfo.telephone" placeholder="手机号码" class="form-control" name="marketPrice">
+                    </div>
+                    <div class="form-group">
+                        <label>入职时间</label>
+                        <input type="date" v-model="addinfo.hiredate"  placeholder="入职时间" class="form-control" name="shopPrice">
+                    </div>
+                   	 职位：
+                    <select class="form-control" id="sels" style="width: 150px;display: inline-block" name="deptID" v-model="addinfo.deptID" >
+							
+                    </select>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" data-dismiss="modal" class="btn btn-secondary">取消</button>
+                    <button id="upload" @click="addStaffInfo()" data-toggle="modal" class="btn btn-primary">确认添加</button>
+                </div>
+        </div>
+    </div>
+</div>
+
+<!-- app -->
+</div>
+
+
+
+
+      <script type="text/javascript" src="assets/js/vendor/jquery-3.3.1.min.js"></script>
+      <script type="text/javascript" src="assets/js/bootstrap.min.js"></script>
+      <script src="assets/js/bs4.pop.js"></script>
+      <script src="assets/js/j.js" type="text/javascript"></script>
+	  <script type="text/javascript" src="assets/js/vue.js"></script>
+	   <script type="text/javascript">
+	  
+	  
+	  /*进入页面，获取所有职位信息*/
+	   getEmpDept();
+	   function getEmpDept(){
+	        $.post("staff?m=getEmpDept",{},function(back) {
+	            var data = back.data;
+	            $("#sel1").empty();
+	            $("#sel1").append("<option value=''>职位</option>");
+            	for(var i =0;i<data.length;i++){
+	                var option = $("<option value="+data[i].id+">"+data[i].name+"</option>");
+	                $("#sel1").append(option);
+            	}
+	        },"json")
+	    }
+	  
+		/*在模态框展示职位信息*/
+		function getEmpDepts(){
+	        $.post("staff?m=getEmpDept",{},function(back) {
+	            var data = back.data;
+	            $("#sel").empty();
+	            $("#sel").append("<option value=''>无</option>");
+            	for(var i =0;i<data.length;i++){
+	                var option = $("<option value="+data[i].id+">"+data[i].name+"</option>");
+	                $("#sel").append(option);
+            	}
+	        },"json")
+	    }
+	  	/*在模态框展示职位信息*/
+		function getEmpDeptss(){
+	        $.post("staff?m=getEmpDept",{},function(back) {
+	            var data = back.data;
+	            $("#sels").empty();
+	            $("#sels").append("<option value=''>无</option>");
+            	for(var i =0;i<data.length;i++){
+	                var option = $("<option value="+data[i].id+">"+data[i].name+"</option>");
+	                $("#sels").append(option);
+            	}
+	        },"json")
+	    }
+	  
+	  
+	  
+	  
+	  
+	  
+	  	 /*VUE实例*/
+	     var app = new Vue({
+	    	  el:"#app",
+	    	  data:{
+	    		  ps:{
+	    		  	deptID:""
+	    		  },
+	    		  pageInfo:{},
+	    		  pageData:[],
+	    		  updateinfo:{},
+	    		  addinfo:{}
+	    	  },
+	    	  methods:{
+	    		  search:function(){
+	    			  sendReq(1);
+	    		  },
+	    		  changePage:function(p){
+	    			  sendReq(p);
+	    		  },
+	    		  /*获取员工信息  */
+	    		  getStaffInfoByid(id){
+	    		  	  $.post(
+	    		  	  	  "staff?m=getStaffInfoByid",{id:id},function(back){
+	    		  	  	  	if(back.code == 10152){
+	    		  	  	  		app.updateinfo = back.data
+	    		  	  	  	 	$("#myModalUpdate").modal({show:true});
+	    		  	  	  	}else{
+	    		  	  	  		alert("获取信息失败，请稍后再试！");
+	    		  	  	  	}
+	    		  	  	  }
+	    		  	  )
+	    		  },
+	    		  /*修改员工信息*/
+	    		  updateStaffInfo(){
+	    			var TEL_REGEXP =/^1([38][0-9]|4[579]|5[0-3,5-9]|6[6]|7[0135678]|9[89])\d{8}$/;
+  		            if(TEL_REGEXP.test(app.updateinfo.telephone)){
+		    		  	 $.post(
+		    		  	 	 "staff?m=updateStaffInfo",app.updateinfo,function(back){
+		    		  	 	 	 if(back.code == 10156){
+		    		  	 	 	 	 window.location.reload();
+		    		  	 	 	 }else{
+		    		  	 	 	 	 bs4pop.notice('修改失败，请稍后再试！', {type: 'warning'});
+		    		  	 	 	 }
+		    		  	 	 }
+		    		  	 )
+  		            	}
+  		            else{
+  		            	
+  		            	 $('#myModalUpdate').modal('hide');
+  		            	 bs4pop.notice('请规范输入数据！！', {type: 'danger'});
+  		            }
+	    			  
+	    		  },
+	    		  /*修改员工账号状态成功*/
+	    		  stopAccount(state,id){
+    				  Notiflix.Confirm.Show( '谨慎操作！', '确定要修改员工账号状态吗?', 'Yes', 'No', function(){
+	    			  		$.get("staff?m=stopAccount&id="+id+"&state="+state ,function(back){
+			    				 if(back.code == 10150){
+			    				 	  window.location.reload();
+			    				 }else{
+			    				 	 bs4pop.notice('修改失败，请稍后再试！', {type: 'warning'});
+			    				 }
+			    			})
+           				 
+          			    }); 
+	    		  },
+	    		  
+	    		  
+	    		  /*添加员工模态框*/
+	    		  addStaff(){
+					$("#myModalAdd").modal({show:true});
+	    		  },
+	    		  /*添加员工请求*/
+	    		  addStaffInfo(){
+	    		  	$.post("staff?m=addStaffInfo",app.addinfo,function(back){
+	    		  		if(back.code == 10158){
+	    		  			alert("添加员工成功，密码已发送到员工手机中，账号为手机号");
+	    		  			window.location.reload();
+	    		  		}else{
+	    		  			 bs4pop.notice('添加失败，请稍后再试！', {type: 'warning'});
+	    		  		}
+	    		  	});
+	    		  },
+	    	  }
+	      });
+	  
+	      /*分页发送的页码数据*/
+	      function sendReq(page){
+	    	$.post("staff?m=getStaffInfoByPage&page="+page ,  app.ps  , function(back){
+	    		app.pageInfo = back.data.pageInfo;
+	    		app.pageData = back.data.pageDate;
+	    	});  
+	      }
+	  	  /*js自动调用分页方法*/
+	      sendReq(1);
+		
+	      $(function(){
+		  		Notiflix.Confirm.Init();
+		  		clickToClose:true
+		  });
+	  	  
+	  
+	  </script> 
+ 
+                    
+
+</body>
+</html>

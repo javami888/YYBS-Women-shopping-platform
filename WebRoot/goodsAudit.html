@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+	<title>采购审核</title>
+	<link rel="stylesheet" href="assets/css/bootstrap.css">
+	<link rel="stylesheet" href="assets/css/font-awesome.min.css">
+    <link rel="stylesheet" href="assets/css/style.css">
+	<link rel="stylesheet" href="assets/css/bs4.pop.css">
+
+</head>
+<body>
+<div id="app">
+<div class="col-lg-6" >
+    <div class="card"style="width: 1520px">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead>
+                    <th colspan="7" >
+                        <div class="card-body" >
+                                <input  type="text" v-model="ps.pname" placeholder="请输入商品名称"  class="mr-3 form-control"
+                                        style="width: 250px;display: inline-block" >   
+                                <button @click="search()" class="btn btn-info">搜索</button> 
+
+                        </div>
+                    </th>
+
+                    <tr>
+                        <th>商品编号</th>
+                        <th>商品名称</th>
+                        <th>商品图片</th>
+                        <th>商品预览</th>
+                        <th>商品价格</th>
+                        <th>申请工号</th>
+                        <th>申请人</th>
+                        <th>操作</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    
+		                <tr v-for="p in pageData">
+		                   <td>{{p.pid}}</td>
+		                   <td>{{p.pname}}</td>
+		                   <td>
+		                       <image  :src="p.pimage"  width="23px" />
+		                   </td>
+		                   <td><button type="button" data-toggle="modal" @click="showImage(p.pid)"  class="btn btn-info">查看</button></td>
+		                   <td>{{p.shopPrice}}</td>
+		                   <td>{{p.eid}}</td>
+		                   <td>{{p.ename}}</td>
+		                   <td>
+								<button type="button" data-toggle="modal"  onclick="getallgoodsType()" @click="goodsAuditByPid(p.pid)" class="btn btn-info">审核 </button>
+		                   </td>
+		                </tr>
+                    
+                    </tbody>
+                    
+                    <tfoot>
+                    	<tr>
+                    		<td></td>
+	                        <td></td>
+	                        <td></td>
+	                        <td></td>
+	                        <td></td>
+                    		<td colspan="3" style="text-align: right">
+                    			共{{pageInfo.totalCount}}条数据
+		                         &nbsp;当前 {{pageInfo.currentPage}}/{{pageInfo.totalPage}} 页
+		                         &nbsp;每页显示 8 条
+                    			<button type="button" class="btn btn-info" @click="changePage(1)">首页</button>
+                                <button type="button" class="btn btn-info" @click="changePage(pageInfo.upPage)">上一页 </button>
+                    			<button type="button" class="btn btn-info" @click="changePage(pageInfo.nextPage)">下一页 </button>
+                                <button type="button" class="btn btn-info" @click="changePage(pageInfo.totalPage)">尾页</button>
+                    			
+                    		</td>
+                    	</tr>
+                    </tfoot>
+				</table>
+			</div>
+		</div>
+	</div>
+</div>
+
+
+<!-- 审核商品的模态框 -->
+<div id="myModalAudit" tabindex="-1" role="dialog" class="modal fade text-left" style="display: none;" aria-hidden="true">
+    <div role="document" class="modal-dialog">
+        <div class="modal-content" >
+            <!-- 模态框头部 -->
+	        <div class="modal-header">
+	          <span class="modal-title">审核商品</span>
+	          <button type="button" class="close" data-dismiss="modal">&times;</button>
+	        </div>
+                <div class="modal-body"  style="padding: 2px 50px 2px;" >
+                	<div class="form-group">
+                        <label>商品名称</label>
+                        <input type="text" v-model="info.pname" disabled="disabled" placeholder="商品名称" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label>商品标价</label>
+                        <input type="text" v-model="info.marketPrice" disabled="disabled" placeholder="商品标价" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label>商品售价</label>
+                        <input type="text" v-model="info.shopPrice" disabled="disabled" placeholder="商品售价" class="form-control" name="shopPrice">
+                    </div>
+                    <div class="form-group">
+                        <label>商品描述</label>
+                        <input type="text" v-model="info.pdesc" disabled="disabled" placeholder="商品描述" class="form-control" name="pdesc">
+                    </div>
+                    <div class="form-group">
+                        <label>是否上架</label>
+                        <select name="pflag"  v-model="info.pflag" disabled="disabled">
+                            <option value="0">是</option>
+                            <option value="1">否</option>
+                        </select>&nbsp;&nbsp;&nbsp;
+                        <label>是否热卖</label>
+                        <select name="isHot" v-model="info.isHot" disabled="disabled">
+                            <option value="1">是</option>
+                            <option value="0">否</option>
+                        </select>&nbsp;&nbsp;&nbsp;
+                        <!-- 这里是数据库中获取的数据 -->
+                       <label>商品类别</label>
+                       <select id="sel" name="cid" v-model="info.cid" disabled="disabled" >
+							
+                       </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>审核结果</label>
+                        <select name="isHot" v-model="result.state">
+                            <option value="0">通过</option>
+                            <option value="2">不通过</option>
+                        </select>
+                    </div>
+					  <div class="form-group">
+					    <textarea class="form-control" rows="3" v-model="result.msg" placeholder="请输入审核意见"></textarea>
+					  </div>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" data-dismiss="modal" class="btn btn-secondary">取消</button>
+                    <button id="checkaudit" @click="checkAudit()" class="btn btn-primary">审核完成</button>
+                </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- 查看/修改商品图片模态框 -->
+<div id="myModalimg" tabindex="-1" role="dialog" class="modal fade text-left" style="display: none;" aria-hidden="true">
+    <div role="document" class="modal-dialog">
+        <div class="modal-content" >
+            <!-- 模态框头部 -->
+	        <div class="modal-header">
+	          <span class="modal-title">图片预览</span>
+	          <button type="button" class="close" data-dismiss="modal">&times;</button>
+	        </div>
+                <div class="modal-body"  style="text-align: center;" >
+				<div class="form-group">
+                       <img :src="img.pimage" id="showimg"  width="350px"   height="500px">
+                </div>             
+                </div>
+                <div class="modal-footer">
+                    <button type="button" data-dismiss="modal" class="btn btn-secondary">取消</button>
+                </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+</div>
+
+
+		<script src="assets/js/bs4.pop.js"></script>
+		<script type="text/javascript" src="assets/js/vendor/jquery-3.3.1.min.js"></script>
+		<script type="text/javascript" src="assets/js/bootstrap.min.js"></script>
+		<script type="text/javascript" src="assets/js/vue.js"></script>
+		<script type="text/javascript">
+		
+		var app = new Vue({
+	    	  el:"#app",
+	    	  data:{
+	    	  	  info:{},
+	    		  ps:{},
+	    		  pageInfo:{},
+	    		  pageData:[],
+	    		  result:{},
+	    		  img:{}
+	    	  },
+	    	  methods:{
+	    	  	  //搜索
+	    		  search:function(){
+	    			  sendReq(1);
+	    		  },
+	    		  //页码改变
+	    		  changePage:function(p){
+	    			  sendReq(p);
+	    		  },
+	    		  //获取要审核的商品信息
+	    		  goodsAuditByPid(pid){
+					  $.post(
+					  	"pro?m=getAuditProByPID&pid="+pid,function(back){
+					  		$("#myModalAudit").modal({show:true});
+					  		app.info = back.data;
+					  	}
+					  )
+	    		  },
+	    		  //审核提交
+	    		  checkAudit(){
+	    		  	  app.result.pid = app.info.pid;
+	    			  $.post("pro?m=auditResult",app.result,function(back){
+	    				  window.location.reload();
+	    			  });
+	    		  },
+	    		  /*展示图片模态框*/
+	    		  showImage(pid){
+	    		  	  $.get(
+	    		  	  	"pro?m=getProImgByPID&pid="+pid,function(back){
+	    		  	  		if(back.code == 10104){
+	    		  	  			app.img = back.data
+	    		  	  			$("#myModalimg").modal({show:true});
+	    		  	  		}else{
+	    		  	  			
+	    		  	  		 bs4pop.notice('获取图片失败，请稍后再试！', {type: 'warning'});
+	    		  	  		
+	    		  	  		}
+	    		  	  	}
+	    		  	  )
+	    		  },
+	    	  }
+	      });
+	      
+
+		/*点击审核，获取商品分类*/
+	    function getallgoodsType(){
+	        $.post("pro?m=getallgoodsType",{},function(back) {
+	            var data = back.data;
+	            $("#sel").empty();
+	            for(var i =0;i<data.length;i++){
+	                var option = $("<option value="+data[i].cid+">"+data[i].cname+"</option>");
+	                $("#sel").append(option);
+	            }
+	        },"json")
+	    }
+
+
+
+		 /*发送分页数据*/
+	     function sendReq(page){
+	    	$.post("pro?m=aduitProInfo&page="+page,  app.ps  , function(back){
+	    		app.pageInfo = back.data.pageInfo;
+	    		app.pageData = back.data.pageData;
+	    	});  
+	      }
+	      
+	      /*初始调用分页，并且为从第一页开始*/
+	      sendReq(1);
+
+		
+		
+		
+		</script>
+
+
+
+</body>
+</html>

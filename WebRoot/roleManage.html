@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>角色管理</title>
+	
+	
+	<link rel="stylesheet" href="assets/css/bootstrap.css">
+	<link rel="stylesheet" href="assets/css/bs4.pop.css">
+	<link rel="stylesheet" href="assets/css/font-awesome.min.css">
+    <link rel="stylesheet" href="assets/css/style.css">
+	<link rel="stylesheet" href="assets/css/new_file.css">
+	<link rel="stylesheet" href="assets/css/notiflix.css">
+	<style type="text/css">
+		ul,li{ 
+			padding:0;margin:0;list-style:none
+		}
+	
+	</style>
+	
+	
+</head>
+<body>
+
+<div id="app">
+	<div class="col-lg-6" >
+	    <div class="card"style="width: 1520px">
+	        <div class="card-body"  width="100%">
+	            <div class="table-responsive">
+	                <table class="table table-striped table-hover">
+	                    <thead>
+	
+	                    <th colspan="4" >
+	                        <div class="card-body" >
+	                                <button @click="openDept()" class="btn btn-success">新增职位</button> 
+	                        </div>
+	                    </th>
+	
+	                    <tr style="text-align: center;">
+	                        <th>职位编号</th>
+	                        <th>职位名称</th>
+	                        <th>职位描述</th>
+	                        <th>操作</th>
+	                    </tr>
+	                    </thead>
+	                    <tbody>
+	                    
+			                <tr v-for="r in allRole"  style="text-align: center;">
+			                   <td>{{r.id}}</td>
+			                   <td>{{r.name}}</td>
+			                   <td>{{r.desc}}</td>
+			                   <td>
+			                   		<button @click="roleMan(r.id)" class="btn btn-info">职位管理</button> 
+			                   		<button @click="delRole(r.id)" class="btn btn-danger">删除职位</button> 
+			                   </td>
+			                </tr>
+	                    
+	                    </tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+	</div>
+
+
+<!-- 角色管理模态框 -->
+<div id="myModalRole" tabindex="-1" role="dialog" class="modal fade text-left" style="display: none;" aria-hidden="true">
+    <div role="document" class="modal-dialog">
+        <div class="modal-content" >
+            <!-- 模态框头部 -->
+	        <div class="modal-header">
+	          <span class="modal-title">角色管理</span>
+	          <button type="button" class="close" data-dismiss="modal">&times;</button>
+	        </div>
+                <div class="modal-body" style="padding-left: 30px" >
+                	<div id="showRole" class="form-group">
+                        <li  v-for=" big in bigarr ">
+							<span style="color: red;">{{big.name}}</span>
+							<ul >
+								<li v-for="small in big.subMenu">
+									&nbsp;&nbsp;&nbsp;&nbsp;<input name="check" type="checkbox" :value="small.id">{{small.name}}
+								</li>
+							</ul>
+							
+						</li>
+                        
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" data-dismiss="modal" class="btn btn-secondary">取消</button>
+                    <button type="button" @click="updateRole()" data-dismiss="modal" class="btn btn-warning">确认修改</button>
+                </div>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- 添加职位的模态框 -->
+<div id="myModalAddDept" tabindex="-1" role="dialog" class="modal fade text-left" style="display: none;" aria-hidden="true">
+    <div role="document" class="modal-dialog">
+        <div class="modal-content" >
+            <!-- 模态框头部 -->
+	        <div class="modal-header">
+	          <span class="modal-title">新增职位</span>
+	          <button type="button" class="close" data-dismiss="modal">&times;</button>
+	        </div>
+                <div class="modal-body">
+                	<div class="form-group">
+                        <label>职位名称</label>
+                        <input type="text" v-model="dept.name" placeholder="职位名称" class="form-control" >
+                    </div>
+                    <div class="form-group">
+                        <label>职位描述</label>
+                        <input type="text" v-model="dept.desc" placeholder="职位描述" class="form-control">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" data-dismiss="modal" class="btn btn-secondary">取消</button>
+                    <button type="button" @click="addDept()" data-dismiss="modal" class="btn btn-warning">确认新增</button>
+                </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+<!-- app -->
+</div>
+
+
+		<script type="text/javascript" src="assets/js/vendor/jquery-3.3.1.min.js"></script>
+		<script type="text/javascript" src="assets/js/bootstrap.min.js"></script>
+		<script type="text/javascript" src="assets/js/vue.js"></script>
+		<script src="assets/js/bs4.pop.js"></script>
+		<script src="assets/js/j.js" type="text/javascript"></script>
+		<script type="text/javascript">
+			
+			var check = document.getElementsByName("check");
+			
+			
+			/*进入页面就发送Ajax请求获取所有角色*/
+			$.get(
+				"role?m=getAllRole",
+				function(back){
+					app.allRole = back.data;
+				}
+			)
+			
+			//主动请求获取所有权限的集合
+			getPermission();
+			/*请求，获取所有权限的集合列表*/
+			function getPermission(){
+				$.post("role?m=getPermission",function(back){
+					app.bigarr = back.data
+				})
+			}
+			
+			
+			var app = new Vue({
+				el:'#app',
+				data:{
+					allRole:{},
+					bigarr:[],
+					rolebyId:[],
+					DEPTID:"",
+					updaterole:"",
+					updatearr:0,
+					dept:{}
+				},
+				methods:{
+					//点击编辑，发送请求获取这个角色下的权限
+					roleMan(id){
+						app.DEPTID = id;
+						//点击编辑的时候，先清除复选框中上次遗留的数据
+						$("input[name = 'check']").prop('checked',false);
+						//发送请求
+						$.post("role?m=getRoleById",{id:id},function(back){
+							//打开模态框
+							$("#myModalRole").modal({show:true});
+							//返回的数据放到vue这个数组中
+							app.rolebyId = back.data;
+							//遍历数据的长度
+							for(var i = 0 ; i < app.rolebyId.length ;i++){
+								//遍历复选框的长度
+								for(var j = 0 ; j < check.length ; j++){
+									//数据中的pid和复选框中的value相等，选中
+									if(app.rolebyId[i].pid == check[j].value){
+										check[j].checked=true;
+									}
+								}
+							}
+						})
+					},
+					//确认修改
+					updateRole(){
+						//遍历复选框
+						for(var j = 0 ; j < check.length ; j++){
+							//如果复选框被选中
+							if(check[j].checked == true){
+								//使用字符串拼接的方式，将这些值传到servlet
+								app.updaterole += check[j].value+",";
+							}
+						}
+						$.post("role?m=updateRole",{updaterole:app.updaterole,deptid:app.DEPTID},function(back){
+							if(back.code == 10166){
+								alert("修改成功！")
+								$("#myModalRole").modal('hide');
+							}else{
+								alert("修改失败")
+							}
+						})
+					},
+					//打开新增职位的模态框
+					openDept(){
+						$("#myModalAddDept").modal({show:true});
+					},
+					//添加角色
+					addDept(){
+						$.post("role?m=addDept", app.dept, function(back){
+							if(back.code == 10168){
+								alert("添加新职位成功!");
+								window.location.reload();
+							}else{
+								$('#myModalAddDept').modal('hide');
+	    		  	 	 	 	bs4pop.notice('添加失败，请重试！', {type: 'danger'});
+							}
+						})
+					},
+					delRole(id){
+						Notiflix.Confirm.Show( '谨慎操作！', '确定删除该职位吗？', 'Yes', 'No', function(){
+							$.post("role?m=deleteStaffInfo",{id:id},function(back){
+								if(back.code == 10176){
+									window.location.reload();
+								}else{
+									$('#myModalAddDept').modal('hide');
+		    		  	 	 	 	bs4pop.notice('删除失败，请重试！', {type: 'danger'});
+								}
+							})
+						})
+					}
+					
+					
+				}
+				
+			})
+			
+			
+			
+		$(function(){
+    	  	Notiflix.Confirm.Init();
+    	  	clickToClose:true
+    	 });	
+
+			
+			
+			
+
+
+		</script>
+
+</body>
+</html>

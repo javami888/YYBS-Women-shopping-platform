@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>商品出库记录</title>
+
+	<link rel="stylesheet" href="assets/css/bootstrap.css">
+	<link rel="stylesheet" href="assets/css/font-awesome.min.css">
+    <link rel="stylesheet" href="assets/css/style.css">
+	<style type="text/css">
+		body{
+			overflow:hidden
+		}
+	
+	</style>
+
+
+</head>
+<body>
+
+<div id="app">
+	<div class="col-lg-6" >
+	    <div class="card"style="width: 1520px">
+	        <div class="card-body"  width="100%">
+	            <div class="table-responsive">
+	                <table class="table table-striped table-hover">
+	                    <thead>
+	
+	                    <th colspan="7" >
+	                        <div class="card-body" >
+	                                
+	                                <input  type="text" v-model="ps.ename" placeholder="请输入姓名"  class="mr-3 form-control"
+	                                        style="width: 250px;display: inline-block" value="">   
+	                                <input  type="text" v-model="ps.time" placeholder="请输入订单时间"  class="mr-3 form-control"
+	                                        style="width: 250px;display: inline-block" value=""> 
+	                                <button @click="search()" class="btn btn-info">搜索</button> 
+	
+	                        </div>
+	                    </th>
+	
+	                    <tr style="text-align: center;">
+	                        <th>日志编号</th>
+	                        <th>订单编号</th>
+	                        <th>员工编号</th>
+	                        <th>员工姓名</th>
+	                        <th>订单时间</th>
+	                        <th>状态</th>
+	                    </tr>
+	                    </thead>
+	                    <tbody>
+	                    
+			                <tr v-for="l in pageData"  style="text-align: center;">
+			                   <td>{{l.id}}</td>
+			                   <td>{{l.oid}}</td>
+			                   <td>{{l.eid}}</td>
+			                   <td>{{l.ename}}</td>
+			                   <td>{{l.outtime}}</td>
+			                   <td>{{l.state}}</td>
+			                </tr>
+	                    
+	                    </tbody>
+	                    
+	                    <tfoot>
+	                    	<tr>
+	                    		<td></td>
+		                        <td></td>
+		                        <td></td>
+		                        <td></td>
+	                    		<td colspan="3" style="text-align: right">
+	                    			共{{pageInfo.totalCount}}条数据
+			                         &nbsp;当前 {{pageInfo.currentPage}}/{{pageInfo.totalPage}} 页
+			                         &nbsp;每页显示 10 条
+	                    			<button type="button" class="btn btn-info" @click="changePage(1)">首页</button>
+	                                <button type="button" class="btn btn-info" @click="changePage(pageInfo.upPage)">上一页 </button>
+	                    			<button type="button" class="btn btn-info" @click="changePage(pageInfo.nextPage)">下一页 </button>
+	                                <button type="button" class="btn btn-info" @click="changePage(pageInfo.totalPage)">尾页</button>
+	                    		</td>
+	                    	</tr>
+	                    </tfoot>
+					</table>
+				</div>
+			</div>
+		</div>
+	</div>
+
+<!-- app -->
+</div>
+
+
+      <script type="text/javascript" src="assets/js/vendor/jquery-3.3.1.min.js"></script>
+      <script type="text/javascript" src="assets/js/bootstrap.min.js"></script>
+	  <script type="text/javascript" src="assets/js/vue.js"></script>
+	  <script type="text/javascript">
+		 
+
+		  
+		  var app = new Vue({
+			  el:"#app",
+			  data:{
+				  ps:{},
+				  pageInfo:{},
+				  pageData:[],
+			  },
+			  methods:{
+				  search:function(){
+	    			  sendReq(1);
+	    		  },
+	    		  changePage:function(p){
+	    			  sendReq(p);
+	    		  },
+	    		  
+	    		  
+			  }
+		  })
+	  
+		   /*分页发送的页码数据*/
+	      function sendReq(page){
+	    	$.post("list?m=getOrderLog&page="+page ,  app.ps  , function(back){
+	    		app.pageInfo = back.data.pageInfo;
+	    		app.pageData = back.data.pageDate;
+	    	});  
+	      }
+	  	  /*js自动调用分页方法*/
+	      sendReq(1);
+		  
+	      
+		  	  
+	  
+	  </script>            
+                    
+
+</body>
+</html>
